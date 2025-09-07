@@ -1,12 +1,18 @@
 {
+  "buildCommand": "pnpm run build && pnpm run build:api",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index"
+      "destination": "/api/dist/index.js"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/dist/index.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }

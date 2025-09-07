@@ -14,7 +14,7 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": false,
     "moduleDetection": "force",
-    "noEmit": true,
+    "noEmit": false,
     "jsx": "react-jsx",
     "strict": false,
     "noUnusedLocals": false,

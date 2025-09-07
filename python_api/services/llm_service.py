@@ -55,7 +55,7 @@ class QwenLLMService:
         for i, msg in enumerate(messages):
             logger.debug(f"[{request_id}] Message {i}: role={msg.get('role')}, content_length={len(msg.get('content', ''))}")
         
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=120.0) as client:
             try:
                 response = await client.post(
                     f"{self.base_url}/chat/completions",

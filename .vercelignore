@@ -1,0 +1,34 @@
+# Source files
+api/*.ts
+api/routes/*.ts
+api/tsconfig.json
+src/
+
+# Development files
+*.md
+.git/
+.gitignore
+README.md
+
+# Python API (separate deployment)
+python_api/
+
+# Development dependencies
+node_modules/
+.env.local
+.env.*.local
+
+# Build artifacts that shouldn't be deployed
+*.log
+*.tsbuildinfo
+.vite/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
