@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试前端数据获取</title>
+</head>
+<body>
+    <h1>测试前端数据获取</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testFetch() {
+            try {
+                console.log('开始获取数据...');
+                const response = await fetch('http://localhost:3001/api/plans/result/5e637cae-6b27-47ab-a8c4-7befb88d85bc');
+                console.log('响应状态:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('获取到的数据:', data);
+                
+                document.getElementById('result').innerHTML = `
+                    <h2>数据获取成功</h2>
+                    <p>计划ID: ${data.plan_id}</p>
+                    <p>标题: ${data.title}</p>
+                    <p>目的地: ${data.destination}</p>
+                    <p>第一天活动数量: ${data.itinerary[0].activities.length}</p>
+                    <h3>第一天活动列表:</h3>
+                    <ul>
+                        ${data.itinerary[0].activities.map((activity, index) => `
+                            <li>
+                                <strong>活动${index + 1}:</strong> ${activity.activity}<br>
+                                <strong>时间:</strong> ${activity.time}<br>
+                                <strong>地点:</strong> ${activity.location}<br>
+                                <strong>描述:</strong> ${activity.description.substring(0, 100)}...
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                document.getElementById('result').innerHTML = `<p style="color: red;">获取数据失败: ${error.message}</p>`;
+            }
+        }
+        
+        // 页面加载后立即执行
+        testFetch();
+    </script>
+</body>
+</html>

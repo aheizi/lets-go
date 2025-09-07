@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>协作链接测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-case {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .test-link {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        .test-link:hover {
+            background: #0056b3;
+        }
+        .error-test {
+            border-left-color: #dc3545;
+        }
+        .success-test {
+            border-left-color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>协作链接测试页面</h1>
+    <p>此页面用于测试协作链接的直接访问功能。请按顺序点击下面的链接进行测试：</p>
+    
+    <div class="test-case success-test">
+        <h3>✅ 测试1：访问存在的计划协作链接</h3>
+        <p>应该能够正常加载协作页面，显示计划信息和参与者状态</p>
+        <a href="http://localhost:5173/collaborate/sample-plan-1" target="_blank" class="test-link">
+            访问北京三日游协作页面
+        </a>
+    </div>
+    
+    <div class="test-case success-test">
+        <h3>✅ 测试2：访问另一个存在的计划协作链接</h3>
+        <p>应该能够正常加载协作页面，显示不同的计划信息</p>
+        <a href="http://localhost:5173/collaborate/sample-plan-2" target="_blank" class="test-link">
+            访问上海周末游协作页面
+        </a>
+    </div>
+    
+    <div class="test-case error-test">
+        <h3>❌ 测试3：访问不存在的计划协作链接</h3>
+        <p>应该显示"计划不存在"的错误信息，并提供帮助指引</p>
+        <a href="http://localhost:5173/collaborate/non-existent-plan" target="_blank" class="test-link">
+            访问不存在的计划
+        </a>
+    </div>
+    
+    <div class="test-case">
+        <h3>🔄 测试4：测试状态更新功能</h3>
+        <p>在协作页面中测试参与者状态更新（确认/拒绝/待定）和反馈提交功能</p>
+        <p><strong>测试步骤：</strong></p>
+        <ol>
+            <li>打开协作页面</li>
+            <li>尝试更改参与状态</li>
+            <li>提交反馈信息</li>
+            <li>检查状态是否正确更新</li>
+        </ol>
+    </div>
+    
+    <div class="test-case">
+        <h3>📱 测试5：响应式设计测试</h3>
+        <p>在不同设备尺寸下测试协作页面的显示效果</p>
+        <p><strong>测试方法：</strong></p>
+        <ul>
+            <li>调整浏览器窗口大小</li>
+            <li>使用开发者工具模拟移动设备</li>
+            <li>检查页面布局是否正常</li>
+        </ul>
+    </div>
+    
+    <div class="test-case">
+        <h3>🔗 测试6：分享链接功能</h3>
+        <p>测试从计划详情页面生成的协作链接是否正确</p>
+        <p><strong>测试步骤：</strong></p>
+        <ol>
+            <li>访问计划详情页面：<a href="http://localhost:5173/plan/sample-plan-1" target="_blank">北京三日游详情</a></li>
+            <li>点击"分享协作"按钮</li>
+            <li>复制生成的协作链接</li>
+            <li>在新标签页中访问该链接</li>
+            <li>验证是否正确跳转到协作页面</li>
+        </ol>
+    </div>
+    
+    <h2>预期结果</h2>
+    <ul>
+        <li>✅ 存在的计划应该能够正常加载协作信息</li>
+        <li>✅ 参与者状态和反馈应该正确显示</li>
+        <li>✅ 状态更新功能应该正常工作</li>
+        <li>❌ 不存在的计划应该显示友好的错误信息</li>
+        <li>🔄 网络错误时应该提供重试选项</li>
+        <li>📱 页面应该在各种设备上正常显示</li>
+    </ul>
+    
+    <h2>注意事项</h2>
+    <p>⚠️ 确保开发服务器正在运行：<code>npm run dev</code></p>
+    <p>⚠️ 如果遇到网络错误，检查后端API是否正常运行</p>
+</body>
+</html>
