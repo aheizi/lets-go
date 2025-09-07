@@ -45,3 +45,12 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+python_api/.env
+
+# NeMo Agent Toolkit (external dependency)
+python_api/NeMo-Agent-Toolkit/

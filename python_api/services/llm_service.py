@@ -12,16 +12,19 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-class DoubaoLLMService:
-    """豆包大模型服务类"""
+class QwenLLMService:
+    """阿里云通义千问大模型服务类"""
     
     def __init__(self):
-        self.api_key = os.getenv('DOUBAO_API_KEY')
-        self.base_url = os.getenv('DOUBAO_BASE_URL')
-        self.model = os.getenv('DOUBAO_MODEL')
+        self.api_key = os.getenv('QWEN_API_KEY')
+        self.base_url = os.getenv('QWEN_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
+        self.model = os.getenv('QWEN_MODEL', 'qwen-plus')
         
-        if not all([self.api_key, self.base_url, self.model]):
-            raise ValueError("豆包API配置不完整，请检查环境变量")
+        if not self.api_key:
+            logger.error("QWEN_API_KEY not found in environment variables")
+            raise ValueError("QWEN_API_KEY is required")
+        
+        logger.info(f"QwenLLMService initialized with model: {self.model}")
         
         self.headers = {
             'Content-Type': 'application/json',
@@ -45,7 +48,7 @@ class DoubaoLLMService:
         }
         
         # 记录请求开始日志
-        logger.info(f"[{request_id}] 开始调用豆包API")
+        logger.info(f"[{request_id}] 开始调用阿里云通义千问API")
         logger.debug(f"[{request_id}] 请求参数: model={self.model}, messages_count={len(messages)}, kwargs={kwargs}")
         
         # 记录消息内容（仅在debug模式下）
@@ -84,16 +87,16 @@ class DoubaoLLMService:
                 
             except httpx.HTTPStatusError as e:
                 response_time = time.time() - start_time
-                logger.error(f"[{request_id}] 豆包API请求失败 - 状态码: {e.response.status_code}, 响应时间: {response_time:.2f}s")
+                logger.error(f"[{request_id}] 阿里云通义千问API请求失败 - 状态码: {e.response.status_code}, 响应时间: {response_time:.2f}s")
                 logger.error(f"[{request_id}] 错误详情: {e.response.text}")
                 raise
             except httpx.RequestError as e:
                 response_time = time.time() - start_time
-                logger.error(f"[{request_id}] 豆包API网络请求错误 - 响应时间: {response_time:.2f}s, 错误: {str(e)}")
+                logger.error(f"[{request_id}] 阿里云通义千问API网络请求错误 - 响应时间: {response_time:.2f}s, 错误: {str(e)}")
                 raise
             except Exception as e:
                 response_time = time.time() - start_time
-                logger.error(f"[{request_id}] 豆包API未知错误 - 响应时间: {response_time:.2f}s, 错误: {str(e)}")
+                logger.error(f"[{request_id}] 阿里云通义千问API未知错误 - 响应时间: {response_time:.2f}s, 错误: {str(e)}")
                 raise
     
     async def generate_destination_analysis(self, destination: str, preferences: Dict[str, Any]) -> str:
@@ -685,4 +688,4 @@ class DoubaoLLMService:
             return [f"在{destination}旅行时，建议提前了解当地文化和习俗。"]
 
 # 创建全局实例
-llm_service = DoubaoLLMService()
+llm_service = QwenLLMService()
