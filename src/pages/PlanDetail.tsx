@@ -172,8 +172,10 @@ const PlanDetail: React.FC = () => {
         setIsLoading(true);
 
         
-        // 直接从后端API获取计划数据
-        const response = await fetch(`http://localhost:3001/api/plans/result/${id}`);
+        // 统一使用plans接口获取计划数据（NeMo和普通计划都存储在同一个地方）
+        const apiEndpoint = `http://localhost:3001/api/plans/result/${id}`;
+        
+        const response = await fetch(apiEndpoint);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

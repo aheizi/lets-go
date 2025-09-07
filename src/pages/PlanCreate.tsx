@@ -53,7 +53,7 @@ const PlanCreate: React.FC = () => {
     try {
       console.log('开始创建计划...');
       
-      // Create the plan using Zustand store
+      // Create the plan using Zustand store (NeMo quick-plan returns complete itinerary)
       const planId = await createPlan({
         destination: formData.destination,
         startDate: formData.startDate,
@@ -65,12 +65,6 @@ const PlanCreate: React.FC = () => {
       });
       
       console.log('计划创建成功:', planId);
-      
-      // Generate AI itinerary
-      console.log('开始生成行程...');
-      await generateItinerary(planId);
-      
-      console.log('行程生成请求已发送');
       
       // Navigate to the plan detail page
       navigate(`/plan/${planId}`);

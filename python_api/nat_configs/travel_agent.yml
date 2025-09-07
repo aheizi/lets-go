@@ -1,0 +1,74 @@
+# NeMo Agent Toolkit - Travel Planner Agent Configuration
+
+# Define custom tools for travel planning
+tools:
+  travel_planner:
+    name: travel_planner
+    description: "A comprehensive travel planning tool that helps users create detailed travel itineraries"
+    parameters:
+      type: object
+      properties:
+        destination:
+          type: string
+          description: "The destination city or country for the trip"
+        start_date:
+          type: string
+          description: "Trip start date in YYYY-MM-DD format"
+        end_date:
+          type: string
+          description: "Trip end date in YYYY-MM-DD format"
+        budget:
+          type: number
+          description: "Total budget for the trip in USD"
+        preferences:
+          type: string
+          description: "User preferences like activities, food, accommodation type"
+      required: ["destination", "start_date", "end_date"]
+
+  weather_info:
+    name: weather_info
+    description: "Get weather information for a specific location and date range"
+    parameters:
+      type: object
+      properties:
+        location:
+          type: string
+          description: "Location to get weather for"
+        date:
+          type: string
+          description: "Date in YYYY-MM-DD format"
+      required: ["location", "date"]
+
+# LLM Configuration
+llms:
+  openai_gpt4:
+    name: openai_gpt4
+    provider: openai
+    model: gpt-4
+    temperature: 0.7
+    max_tokens: 2000
+
+# Agent Workflow Configuration
+workflows:
+  travel_planning_agent:
+    name: travel_planning_agent
+    description: "An intelligent travel planning agent that creates personalized itineraries"
+    tools:
+      - travel_planner
+      - weather_info
+    llm: openai_gpt4
+    system_prompt: |
+      You are a professional travel planning assistant. Your goal is to help users create amazing travel experiences by:
+      
+      1. Understanding their travel preferences and requirements
+      2. Providing detailed itineraries with activities, accommodations, and dining suggestions
+      3. Considering weather conditions and seasonal factors
+      4. Staying within their specified budget
+      5. Offering practical travel tips and local insights
+      
+      Always be helpful, informative, and enthusiastic about travel planning.
+    max_iterations: 10
+    verbose: true
+
+# Default workflow to run
+default_workflow: travel_planning_agent

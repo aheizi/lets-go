@@ -155,7 +155,7 @@ async def get_plan_status(plan_id: str):
         "message": plan_info.get("message", "处理中...")
     }
 
-@router.get("/result/{plan_id}", response_model=TravelPlan)
+@router.get("/result/{plan_id}")
 async def get_plan_result(plan_id: str):
     """获取完整的旅行计划结果"""
     if plan_id not in plan_results:
@@ -164,7 +164,22 @@ async def get_plan_result(plan_id: str):
         else:
             raise HTTPException(status_code=404, detail="计划不存在")
     
-    return plan_results[plan_id]
+    plan = plan_results[plan_id]
+    
+    # 如果是TravelPlan对象，转换为字典
+    if hasattr(plan, 'dict'):
+        return plan.dict()
+    # 如果已经是字典，直接返回
+    elif isinstance(plan, dict):
+        return plan
+    else:
+        # 兜底处理，尝试转换为字典
+        try:
+            return plan.__dict__
+        except:
+            return {"error": "无法序列化计划数据"}
+    
+    return plan
 
 @router.post("/optimize/{plan_id}")
 async def optimize_plan(plan_id: str, optimization_request: Dict[str, Any]):
@@ -279,7 +294,10 @@ async def update_plan(plan_id: str, update_request: Dict[str, Any]):
         # 更新目的地
         if "destination" in details:
             if current_plan:
-                current_plan.destination = details["destination"]
+                if isinstance(current_plan, dict):
+                    current_plan["destination"] = details["destination"]
+                else:
+                    current_plan.destination = details["destination"]
             if plan_id in active_plans:
                 active_plans[plan_id]["request"]["destination"] = details["destination"]
             updated_fields.append("destination")
@@ -287,14 +305,20 @@ async def update_plan(plan_id: str, update_request: Dict[str, Any]):
         # 更新日期
         if "startDate" in details:
             if current_plan:
-                current_plan.start_date = details["startDate"]
+                if isinstance(current_plan, dict):
+                    current_plan["start_date"] = details["startDate"]
+                else:
+                    current_plan.start_date = details["startDate"]
             if plan_id in active_plans:
                 active_plans[plan_id]["request"]["start_date"] = details["startDate"]
             updated_fields.append("startDate")
         
         if "endDate" in details:
             if current_plan:
-                current_plan.end_date = details["endDate"]
+                if isinstance(current_plan, dict):
+                    current_plan["end_date"] = details["endDate"]
+                else:
+                    current_plan.end_date = details["endDate"]
             if plan_id in active_plans:
                 active_plans[plan_id]["request"]["end_date"] = details["endDate"]
             updated_fields.append("endDate")
@@ -302,7 +326,10 @@ async def update_plan(plan_id: str, update_request: Dict[str, Any]):
         # 更新参与人数
         if "participants" in details:
             if current_plan:
-                current_plan.group_size = details["participants"]
+                if isinstance(current_plan, dict):
+                    current_plan["group_size"] = details["participants"]
+                else:
+                    current_plan.group_size = details["participants"]
             if plan_id in active_plans:
                 active_plans[plan_id]["request"]["group_size"] = details["participants"]
             updated_fields.append("participants")
@@ -310,7 +337,10 @@ async def update_plan(plan_id: str, update_request: Dict[str, Any]):
         # 更新预算等级
         if "budget" in details:
             if current_plan:
-                current_plan.budget_level = details["budget"]
+                if isinstance(current_plan, dict):
+                    current_plan["budget_level"] = details["budget"]
+                else:
+                    current_plan.budget_level = details["budget"]
             if plan_id in active_plans:
                 active_plans[plan_id]["request"]["budget_level"] = details["budget"]
             updated_fields.append("budget")
@@ -318,7 +348,10 @@ async def update_plan(plan_id: str, update_request: Dict[str, Any]):
         # 更新旅行风格
         if "travelStyle" in details:
             if current_plan:
-                current_plan.travel_style = details["travelStyle"]
+                if isinstance(current_plan, dict):
+                    current_plan["travel_style"] = details["travelStyle"]
+                else:
+                    current_plan.travel_style = details["travelStyle"]
             if plan_id in active_plans:
                 active_plans[plan_id]["request"]["travel_style"] = details["travelStyle"]
             updated_fields.append("travelStyle")
@@ -326,7 +359,10 @@ async def update_plan(plan_id: str, update_request: Dict[str, Any]):
         # 更新兴趣偏好
         if "interests" in details:
             if current_plan:
-                current_plan.interests = details["interests"]
+                if isinstance(current_plan, dict):
+                    current_plan["interests"] = details["interests"]
+                else:
+                    current_plan.interests = details["interests"]
             if plan_id in active_plans:
                 active_plans[plan_id]["request"]["interests"] = details["interests"]
             updated_fields.append("interests")
@@ -334,16 +370,22 @@ async def update_plan(plan_id: str, update_request: Dict[str, Any]):
         # 更新特殊要求
         if "specialRequests" in details:
             if current_plan:
-                # 如果计划对象有special_requests属性，则更新
-                if hasattr(current_plan, 'special_requests'):
-                    current_plan.special_requests = details["specialRequests"]
+                if isinstance(current_plan, dict):
+                    current_plan["special_requests"] = details["specialRequests"]
+                else:
+                    # 如果计划对象有special_requests属性，则更新
+                    if hasattr(current_plan, 'special_requests'):
+                        current_plan.special_requests = details["specialRequests"]
             if plan_id in active_plans:
                 active_plans[plan_id]["request"]["special_requests"] = details["specialRequests"]
             updated_fields.append("specialRequests")
         
         # 更新修改时间
         if current_plan:
-            current_plan.updated_at = datetime.now().isoformat()
+            if isinstance(current_plan, dict):
+                current_plan["updated_at"] = datetime.now().isoformat()
+            else:
+                current_plan.updated_at = datetime.now().isoformat()
         
         return {
             "success": True,
@@ -406,21 +448,41 @@ async def list_plans():
     # 完成的计划
     for plan_id, plan in plan_results.items():
         if plan_id not in active_plans:  # 避免重复
-            plan_data = {
-                "plan_id": plan_id,
-                "status": "completed",
-                "created_at": plan.created_at,
-                "updated_at": getattr(plan, 'updated_at', plan.created_at),
-                "destination": plan.destination,
-                "start_date": plan.start_date,
-                "end_date": plan.end_date,
-                "participants": plan.group_size,
-                "budget": plan.budget_level,
-                "travel_style": plan.travel_style,
-                "interests": getattr(plan, 'interests', []),
-                "progress": 100,
-                "itinerary": getattr(plan, 'itinerary', None)
-            }
+            # 处理字典和对象两种情况
+            if isinstance(plan, dict):
+                # 如果是字典格式（从NeMo API返回）
+                plan_data = {
+                    "plan_id": plan_id,
+                    "status": "completed",
+                    "created_at": plan.get('created_at', datetime.now().isoformat()),
+                    "updated_at": plan.get('updated_at', plan.get('created_at', datetime.now().isoformat())),
+                    "destination": plan.get('destination'),
+                    "start_date": plan.get('start_date'),
+                    "end_date": plan.get('end_date'),
+                    "participants": plan.get('group_size'),
+                    "budget": plan.get('budget_level'),
+                    "travel_style": plan.get('travel_style'),
+                    "interests": plan.get('interests', []),
+                    "progress": 100,
+                    "itinerary": plan.get('itinerary')
+                }
+            else:
+                # 如果是TravelPlan对象
+                plan_data = {
+                    "plan_id": plan_id,
+                    "status": "completed",
+                    "created_at": getattr(plan, 'created_at', datetime.now().isoformat()),
+                    "updated_at": getattr(plan, 'updated_at', getattr(plan, 'created_at', datetime.now().isoformat())),
+                    "destination": plan.destination,
+                    "start_date": plan.start_date.isoformat() if hasattr(plan.start_date, 'isoformat') else str(plan.start_date),
+                    "end_date": plan.end_date.isoformat() if hasattr(plan.end_date, 'isoformat') else str(plan.end_date),
+                    "participants": plan.group_size,
+                    "budget": getattr(plan, 'budget_level', None),
+                    "travel_style": getattr(plan, 'travel_style', None),
+                    "interests": getattr(plan, 'interests', []),
+                    "progress": 100,
+                    "itinerary": getattr(plan, 'itinerary', None)
+                }
             completed_plans_list.append(plan_data)
     
     return {

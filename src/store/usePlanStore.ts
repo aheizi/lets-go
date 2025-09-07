@@ -440,7 +440,7 @@ export const usePlanStore = create<PlanState>((set, get) => ({
       console.error('Failed to update plan:', error);
       throw error;
     } finally {
-      set({ isLoading: false });
+      set({ isGenerating: false });
     }
   },
   
@@ -452,7 +452,7 @@ export const usePlanStore = create<PlanState>((set, get) => ({
   setCurrentPlan: (plan) => set({ currentPlan: plan }),
   
   createPlan: async (details) => {
-    set({ isLoading: true });
+    set({ isGenerating: true });
     
     try {
       const requestData = {
@@ -465,9 +465,9 @@ export const usePlanStore = create<PlanState>((set, get) => ({
         interests: details.interests
       };
       
-      console.log('Creating plan with data:', requestData);
+      console.log('Creating plan with NeMo Agent:', requestData);
       
-      const response = await fetch('http://localhost:3001/api/plans/create', {
+      const response = await fetch('http://localhost:3001/api/nemo-plans/quick-plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -495,8 +495,13 @@ export const usePlanStore = create<PlanState>((set, get) => ({
       }
       
       const result = await response.json();
-      console.log('Plan created successfully:', result);
+      console.log('Plan created with NeMo Agent:', result);
+      
+      // 使用后端返回的plan_id，而不是前端生成
       const planId = result.plan_id;
+      
+      // Transform NeMo result to our format
+      const transformedItinerary = result.itinerary ? transformItinerary(result.itinerary) : undefined;
       
       // Create local plan object with mock participants
       const newPlan: Plan = {
@@ -543,10 +548,11 @@ export const usePlanStore = create<PlanState>((set, get) => ({
             feedback: '需要确认一下时间安排'
           }
         ],
-        status: 'draft',
+        status: transformedItinerary ? 'planning' : 'draft',
         createdBy: 'current_user',
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        itinerary: transformedItinerary
       };
       
       get().addPlan(newPlan);
@@ -565,17 +571,35 @@ export const usePlanStore = create<PlanState>((set, get) => ({
     set({ isGenerating: true });
     
     try {
-      // Start the itinerary generation process
-      const generateResponse = await fetch(`http://localhost:3001/api/plans/generate/${planId}`, {
+      // Get plan details for NeMo generation
+      const plan = get().plans.find(p => p.id === planId);
+      if (!plan) {
+        throw new Error('Plan not found');
+      }
+      
+      // Start the itinerary generation process with NeMo
+      const generateResponse = await fetch(`http://localhost:3001/api/nemo-plans/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+          destination: plan.details.destination,
+          start_date: plan.details.startDate,
+          end_date: plan.details.endDate,
+          group_size: plan.details.participants,
+          budget_level: plan.details.budget,
+          travel_style: Array.isArray(plan.details.travelStyle) ? plan.details.travelStyle.join(', ') : plan.details.travelStyle,
+          interests: plan.details.interests
+        })
       });
       
       if (!generateResponse.ok) {
-        throw new Error(`Failed to start generation: ${generateResponse.status}`);
+        throw new Error(`Failed to start NeMo generation: ${generateResponse.status}`);
       }
+      
+      const generateResult = await generateResponse.json();
+      const taskId = generateResult.task_id;
       
       // Poll for status until completion
       let isCompleted = false;
@@ -585,9 +609,9 @@ export const usePlanStore = create<PlanState>((set, get) => ({
       while (!isCompleted && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
         
-        const statusResponse = await fetch(`http://localhost:3001/api/plans/status/${planId}`);
+        const statusResponse = await fetch(`http://localhost:3001/api/nemo-plans/status/${taskId}`);
         if (!statusResponse.ok) {
-          throw new Error(`Failed to check status: ${statusResponse.status}`);
+          throw new Error(`Failed to check NeMo status: ${statusResponse.status}`);
         }
         
         const statusData = await statusResponse.json();
@@ -596,7 +620,7 @@ export const usePlanStore = create<PlanState>((set, get) => ({
           isCompleted = true;
           
           // Get the generated result
-          const resultResponse = await fetch(`http://localhost:3001/api/plans/result/${planId}`);
+          const resultResponse = await fetch(`http://localhost:3001/api/nemo-plans/result/${taskId}`);
           if (!resultResponse.ok) {
             throw new Error(`Failed to get result: ${resultResponse.status}`);
           }

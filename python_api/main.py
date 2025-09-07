@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 # 导入路由
 from routes.auth import router as auth_router
 from routes import plans
+from routes import nemo_plans
 
 # 加载环境变量
 load_dotenv()
@@ -39,6 +40,7 @@ app.add_middleware(
 # 注册路由
 app.include_router(auth_router, prefix="/api/auth", tags=["认证"])
 app.include_router(plans.router)
+app.include_router(nemo_plans.router)
 
 # 健康检查接口
 @app.get("/api/health")
@@ -53,11 +55,16 @@ async def health_check():
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """全局异常处理器"""
+    import traceback
+    error_detail = str(exc)
+    error_traceback = traceback.format_exc()
+    print(f"❌ 全局异常捕获: {error_detail}")
+    print(f"📍 错误堆栈: {error_traceback}")
     return JSONResponse(
         status_code=500,
         content={
             "success": False,
-            "error": "Server internal error"
+            "error": f"Server internal error: {error_detail}"
         }
     )
 
